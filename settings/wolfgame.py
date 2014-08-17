@@ -21,12 +21,10 @@ NIGHT_TIME_WARN = 90  # should be less than NIGHT_TIME_LIMIT
 DAY_TIME_LIMIT = 720
 DAY_TIME_WARN = 600   # should be less than DAY_TIME_LIMIT
 JOIN_TIME_LIMIT = 3600
-# May only be set if the above are also set
-SHORT_DAY_PLAYERS = 6 # Number of players left to have a short day
+SHORT_DAY_PLAYERS = 6 # Number of players left to have a short day - these can only be set if the above are also set
 SHORT_DAY_LIMIT = 520
 SHORT_DAY_WARN = 400
-# If time lord dies, the timers get set to this instead (60s day, 30s night)
-TIME_LORD_DAY_LIMIT = 60
+TIME_LORD_DAY_LIMIT = 60 # If time lord dies, the timers get set to this instead (60s day, 30s night)
 TIME_LORD_DAY_WARN = 45
 TIME_LORD_NIGHT_LIMIT = 30
 TIME_LORD_NIGHT_WARN = 20
@@ -34,8 +32,7 @@ KILL_IDLE_TIME = 300
 WARN_IDLE_TIME = 180
 PART_GRACE_TIME = 30
 QUIT_GRACE_TIME = 30
-#  controls how many people it does in one /msg; only works for messages that are the same
-MAX_PRIVMSG_TARGETS = 4
+MAX_PRIVMSG_TARGETS = 4 #  controls how many people it does in one /msg; only works for messages that are the same
 LEAVE_STASIS_PENALTY = 1
 IDLE_STASIS_PENALTY = 1
 PART_STASIS_PENALTY = 1
@@ -51,11 +48,31 @@ START_WITH_DAY = False
 WOLF_STEALS_GUN = True  # at night, the wolf can steal steal the victim's bullets
 ROLE_REVEAL = True
 LOVER_WINS_WITH_FOOL = False # if fool is lynched, does their lover win with them?
+CAN_KILL_TRAITOR = False # can the wolves kill traitor?
 
 CARE_BOLD = False
 CARE_COLOR = False
 KILL_COLOR = False
 KILL_BOLD = False
+CARE_ADVERTISING = False
+KILL_ADVERTISING = False
+
+EXEMPT_ADMINS = True # exempt admins, owners and/or chanops from being kicked by the above
+EXEMPT_OWNERS = True
+EXEMPT_OPS = True
+
+AUTO_OP_DEOP = True # ops and deops chanops on start and endgame
+
+RAW_JOIN = True # allow to join other chans than the default one
+LOG_CHAN = False # logs activity in botconfig.ADMIN_CHAN - WARNING: Can heavily lags big games
+LOG_AUTO_TOGGLE = True # automatically disables logging if len(pl) >= MIN_LOG_PLAYERS
+MIN_LOG_PLAYERS = 12
+AUTO_LOG_TOGGLE = False # automatically toggle logging when an admin gets in the admin_chan
+MINIMALIST_LOG = True
+
+ALLOW_GIT = True # enables automatic git-pull/restart feature
+
+NS_GHOST = False # if the nickname is unavailable, sends GHOST if true, else sends REGAIN
 
 LOG_FILENAME = ""
 BARE_LOG_FILENAME = ""
@@ -95,6 +112,7 @@ TOTEM_CHANCES = {       "death": (     1/8     ,     1/15     ),
 GAME_MODES = {}
 AWAY = ['services.', 'services.int']  # cloaks of people who are away.
 SIMPLE_NOTIFY = []  # cloaks of people who !simple, who want everything /notice'd
+PING_IN = []
 
 # TODO: move this to a game mode called "fixed" once we implement a way to randomize roles (and have that game mode be called "random")
 DEFAULT_ROLE = "villager"

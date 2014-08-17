@@ -11,10 +11,11 @@
 from oyoyo.parse import parse_nick
 import fnmatch
 import botconfig
+import settings.wolfgame as var # needed for admin/owner/op handling
 
 def generate(fdict, permissions=True, **kwargs):
     """Generates a decorator generator.  Always use this"""
-    def cmd(*s, raw_nick=False, admin_only=False, owner_only=False, hookid=-1):
+    def cmd(*s, raw_nick=False, admin_only=False, owner_only=False, op_only=False, allow_unopped=False hookid=-1):
         def dec(f):
             def innerf(*args):
                 largs = list(args)
@@ -45,19 +46,24 @@ def generate(fdict, permissions=True, **kwargs):
                                 if cmdname in botconfig.ALLOW[pattern]:
                                     return f(*largs)  # no questions
                 if owner_only:
-                    if cloak and [ptn for ptn in botconfig.OWNERS 
-                                  if fnmatch.fnmatch(cloak.lower(), ptn.lower())]:
+                    if nick in var.IS_OWNER:
                         return f(*largs)
-                    elif cloak:
+                    else:
                         largs[0].notice(nick, "You are not the owner.")
                         return
                 if admin_only:
-                    if cloak and [ptn for ptn in botconfig.ADMINS+botconfig.OWNERS
-                                  if fnmatch.fnmatch(cloak.lower(), ptn.lower())]:
+                    if nick in var.IS_ADMIN:
                         return f(*largs)
-                    elif cloak:
+                    else:
                         largs[0].notice(nick, "You are not an admin.")
                         return
+                if op_only: # no idea if it will ever serve any purpose, but let's have it just in case since we can
+                    if nick in var.IS_OP or (nick in var.WAS_OP and allow_unopped):
+                        return f(*largs)
+                    elif nick in var.WAS_OP and not allow_unopped:
+                        largs[0].notice(nick, "You are currently not a channel operator.")
+                    else:
+                        largs[0].notice(nick, "You are not a channel operator.")
                 return f(*largs)
             alias = False
             innerf.aliases = []
@@ -76,6 +82,8 @@ def generate(fdict, permissions=True, **kwargs):
             innerf.owner_only = owner_only
             innerf.raw_nick = raw_nick
             innerf.admin_only = admin_only
+            innerf.op_only = op_only
+            innerf.allow_unopped = allow_unopped
             innerf.hookid = hookid
             innerf.__doc__ = f.__doc__
             return innerf

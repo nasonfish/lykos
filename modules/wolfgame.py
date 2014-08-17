@@ -61,6 +61,11 @@ var.LAST_TIME = None
 
 var.USERS = {}
 
+var.IS_ADMIN = []
+var.IS_OWNER = []
+var.IS_OP = []
+var.WAS_OP = []
+
 var.PINGING = False
 var.ADMIN_PINGING = False
 var.ROLES = {"person" : []}
@@ -77,6 +82,11 @@ var.DEAD = []
 var.ORIGINAL_SETTINGS = {}
 
 var.LAST_SAID_TIME = {}
+
+var.AUTO_LOG_TOGGLED = False
+var.NO_PING = False
+var.AUTO_TOGGLED_LOG = False
+var.MASS_MODES_CONNECT = False
 
 var.GAME_START_TIME = datetime.now()  # for idle checker only
 var.CAN_START_TIME = 0
@@ -112,24 +122,34 @@ if botconfig.DEBUG_MODE:
 def connect_callback(cli):
     to_be_devoiced = []
     cmodes = []
+    
+    if botconfig.ADMIN_CHAN == "":
+        var.LOG_CHAN = False
 
     @hook("quietlist", hookid=294)
     def on_quietlist(cli, server, botnick, channel, q, quieted, by, something):
-        if re.match(".+\!\*@\*", quieted):  # only unquiet people quieted by bot
+        if re.match(".+\!\*@\*", quieted) and by == var.FULL_ADDRESS and channel == botconfig.CHANNEL:  # only unquiet people quieted by bot
             cmodes.append(("-q", quieted))
 
     @hook("whospcrpl", hookid=294)
-    def on_whoreply(cli, server, nick, ident, cloak, user, status, acc):
+    def on_whoreply(cli, server, you, chan, ident, cloak, user, status, acc):
         if user in var.USERS: return  # Don't add someone who is already there
         if user == botconfig.NICK:
             cli.nickname = user
             cli.ident = ident
             cli.hostmask = cloak
+            var.FULL_ADDRESS = "{0}!{1}@{2}".format(user, ident, cloak)
         if acc == "0":
             acc = "*"
         if "+" in status:
             to_be_devoiced.append(user)
         var.USERS[user] = dict(cloak=cloak,account=acc)
+        if cloak in botconfig.ADMINS or cloak in botconfig.OWNERS or acc in botconfig.ADMINS_ACCOUNTS or acc in botconfig.OWNERS_ACCOUNTS:
+            var.IS_ADMIN.append(user)
+        if cloak in botconfig.OWNERS or acc in botconfig.OWNERS_ACCOUNTS:
+            var.IS_OWNER.append(user)
+        if "@" in status and user not in var.IS_OP and chan == botconfig.CHANNEL:
+            var.IS_OP.append(user)
 
     @hook("endofwho", hookid=294)
     def afterwho(*args):
@@ -139,39 +159,54 @@ def connect_callback(cli):
 
         @hook("mode", hookid=294)
         def on_give_me_ops(cli, blah, blahh, modeaction, target="", *other):
-            if modeaction == "+o" and target == botconfig.NICK:
+            if modeaction == "+o" and target == botconfig.NICK and var.PHASE == "none" and chan == botconfig.CHANNEL:
                 var.OPPED = True
 
                 if var.PHASE == "none":
                     @hook("quietlistend", 294)
                     def on_quietlist_end(cli, svr, nick, chan, *etc):
-                        if chan == botconfig.CHANNEL:
+                        if chan == botconfig.CHANNEL and var.MASS_MODES_CONNECT == False:
+                            decorators.unhook(HOOKS, 294)
                             mass_mode(cli, cmodes)
-
+                            var.MASS_MODES_CONNECT = True
                     cli.mode(botconfig.CHANNEL, "q")  # unquiet all
                     cli.mode(botconfig.CHANNEL, "-m")  # remove -m mode from channel
-            elif modeaction == "-o" and target == botconfig.NICK:
-                var.OPPED = False
-                cli.msg("ChanServ", "op " + botconfig.CHANNEL)
+                elif modeaction == "-o" and target == botconfig.NICK and chan == botconfig.CHANNEL:
+                    var.OPPED = False
+                    cli.msg("ChanServ", "op " + botconfig.CHANNEL)
 
 
-    cli.who(botconfig.CHANNEL, "%nuhaf")
+    cli.who(botconfig.CHANNEL, "%nuchaf")
 
 
 def mass_mode(cli, md):
     """ Example: mass_mode(cli, (('+v', 'asdf'), ('-v','wobosd'))) """
     lmd = len(md)  # store how many mode changes to do
-    for start_i in range(0, lmd, 4):  # 4 mode-changes at a time
-        if start_i + 4 > lmd:  # If this is a remainder (mode-changes < 4)
-            z = list(zip(*md[start_i:]))  # zip this remainder
-            ei = lmd % 4  # len(z)
-        else:
-            z = list(zip(*md[start_i:start_i+4])) # zip four
-            ei = 4 # len(z)
-        # Now z equal something like [('+v', '-v'), ('asdf', 'wobosd')]
-        arg1 = "".join(z[0])
-        arg2 = " ".join(z[1])  # + " " + " ".join([x+"!*@*" for x in z[1]])
-        cli.mode(botconfig.CHANNEL, arg1, arg2)
+    args = ["", ""]
+    for j in range(0, lmd):
+        for i in range(0, len(md[j])):
+            args[i] += md[j][i] + " "
+        if ((j+1) % 4) == 0:
+            cli.mode(botconfig.CHANNEL, args[0].replace(" ", ""), args[1])
+            args = ["", ""]
+    if args[0] != "":
+        cli.mode(botconfig.CHANNEL, args[0].replace(" ", ""), args[1])   
+
+def chk_admin(cli, nick): # call this function whenever someone changes status (nick, account, join, part, kick, quit)
+    if nick in var.IS_ADMIN:
+        return
+    else:
+        for chan in (botconfig.CHANNEL + botconfig.ALT_CHANS + botconfig.ADMIN_CHAN + botconfig.SPECIAL_CHAN + botconfig.DEV_CHAN):
+            cli.who(chan, "%nuchaf")
+            @hook("whospcrpl", hookid=558)
+            def who_chkadm(cli, server, you, channel, ident, cloak, user, status, acc):
+                if cloak in botconfig.ADMINS or cloak in botconfig.OWNERS or acc in botconfig.ADMINS_ACCOUNTS or acc in botconfig.OWNERS_ACCOUNTS:
+                    var.IS_ADMIN.append(user)
+                if cloak in botconfig.OWNERS or acc in botconfig.OWNERS_ACCOUNTS:
+                    var.IS_OWNER.append(user)
+            @hook("endofwho", hookid=558)
+            def endofadchk(cli, server, you, channel, ident, cloak, user, status, acc):
+                decorators.unhook(HOOKS, 558)
 
 def pm(cli, target, message):  # message either privmsg or notice, depending on user settings
     if target in var.USERS and var.USERS[target]["cloak"] in var.SIMPLE_NOTIFY:
