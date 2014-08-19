@@ -78,6 +78,7 @@ var.AFTER_FLASTGAME = None
 var.PHASE = "none"  # "join", "day", or "night"
 var.TIMERS = {}
 var.DEAD = []
+var.NO_LYNCH = []
 
 var.ORIGINAL_SETTINGS = {}
 
@@ -240,6 +241,7 @@ def reset(cli):
     var.DEAD = []
     var.ROLES = {"person" : []}
     var.JOINED_THIS_GAME = []
+    var.NO_LYNCH = []
 
     reset_settings()
 
@@ -768,6 +770,7 @@ def hurry_up(cli, gameid, change):
     pl = var.list_players()
     avail = len(pl) - len(var.WOUNDED) - len(var.ASLEEP)
     votesneeded = avail // 2 + 1
+    not_lynching = len(var.NO_LYNCH)
 
     found_dup = False
     maxfound = (0, "")
@@ -780,7 +783,7 @@ def hurry_up(cli, gameid, change):
         for v in voters:
             weight = 1
             imp_count = sum([1 if p == v else 0 for p in var.IMPATIENT])
-            pac_count = sum([1 if p == v else 0 for p in var.PACIFISTS])
+            pac_count = sum([1 if p == v else 0 for p in (var.PACIFISTS + var.NO_LYNCH)])
             if pac_count > imp_count:
                 weight = 0 # more pacifists than impatience totems
             elif imp_count == pac_count and v not in var.VOTES[votee]:
@@ -829,6 +832,11 @@ def chk_decision(cli, force = ""):
     pl = var.list_players()
     avail = len(pl) - len(var.WOUNDED) - len(var.ASLEEP)
     votesneeded = avail // 2 + 1
+    not_lynching = len(var.NO_LYNCH) + len(var.PACIFISTS)
+    if not_lynching >= votesneeded:
+        cli.msg(botconfig.CHANNEL, "The villagers have agreed to refrain from lynching for today.")
+        transition_night(cli)
+        return
     aftermessage = None
     votelist = copy.deepcopy(var.VOTES)
     for votee, voters in votelist.items():
@@ -839,7 +847,7 @@ def chk_decision(cli, force = ""):
         for v in voters:
             weight = 1
             imp_count = sum([1 if p == v else 0 for p in var.IMPATIENT])
-            pac_count = sum([1 if p == v else 0 for p in var.PACIFISTS])
+            pac_count = sum([1 if p == v else 0 for p in (var.PACIFISTS + var.NO_LYNCH)])
             if pac_count > imp_count:
                 weight = 0 # more pacifists than impatience totems
             elif imp_count == pac_count and v not in var.VOTES[votee]:
@@ -976,9 +984,14 @@ def show_votes(cli, nick, chan, rest):
     pl = var.list_players()
     avail = len(pl) - len(var.WOUNDED) - len(var.ASLEEP)
     votesneeded = avail // 2 + 1
+    not_voting = len(var.NO_LYNCH)
+    if not_voting == 1:
+        plural = " has"
+    else:
+        plural = "s have"
     the_message = ('{}: \u0002{}\u0002 players, \u0002{}\u0002 votes '
                    'required to lynch, \u0002{}\u0002 players available to '
-                   'vote.').format(nick, len(pl), votesneeded, avail)
+                   'vote. \u0002{}\u0002 player{} refrained from voting.').format(nick, len(pl), votesneeded, avail, not_voting, plural)
 
     if chan == nick:
         pm(cli, nick, the_message)
@@ -1598,6 +1611,8 @@ def del_player(cli, nick, forced_death = False, devoice = True, end_game = True,
                         if not var.VOTES[k]:  # no more votes on that person
                             del var.VOTES[k]
                         break # can only vote once
+                if nick in var.NO_LYNCH:
+                    var.NO_LYNCH.remove(nick)
 
                 if nick in var.WOUNDED:
                     var.WOUNDED.remove(nick)
@@ -1998,6 +2013,10 @@ def on_nick(cli, prefix, nick):
                     cli.msg(chan, ("\02{0}\02 has returned to "+
                                    "the village.").format(nick))
 
+    if prefix in var.NO_LYNCH:
+        var.NO_LYNCH.remove(prefix)
+        var.NO_LYNCH.append(nick)
+
 def leave(cli, what, nick, why=""):
     nick, _, _, cloak = parse_nick(nick)
 
@@ -2195,6 +2214,7 @@ def transition_day(cli, gameid=0):
     var.INVESTIGATED = []
     var.WOUNDED = []
     var.DAY_START_TIME = datetime.now()
+    var.NO_LYNCH = []
     var.DAY_COUNT += 1
     var.FIRST_DAY = (var.DAY_COUNT == 1)
     havetotem = copy.copy(var.LASTGIVEN)
@@ -2620,6 +2640,38 @@ def chk_nightdone(cli):
         if var.PHASE == "night":  # Double check
             transition_day(cli)
 
+@cmd("nolynch", "nl", "novote", "nv", "abstain", "abs")
+def no_lynch(cli, nick, chan, rest):
+    """Allow someone to refrain from voting for the day"""
+    if chan == botconfig.CHANNEL:
+        if var.PHASE in ("none", "join"):
+            cli.notice(nick, "No game is currently running.")
+            return
+        elif nick not in var.list_players() or nick in var.DISCONNECTED.keys():
+            cli.notice(nick, "You're not currently playing.")
+            return
+        if var.PHASE != "day":
+            cli.notice(nick, "Lynching is only during the day. Please wait patiently for morning.")
+            return
+        if nick in var.WOUNDED:
+            cli.msg(chan, "{0}: You are wounded and resting, thus you are unable to vote for the day.".format(nick))
+            return
+        if nick in var.NO_LYNCH:
+            var.NO_LYNCH.remove(nick)
+            cli.msg(chan, "{0}: You chose to vote for someone today. You may use '{1}lynch nick'.".format(nick, botconfig.CMD_CHAR))
+            return
+        candidates = var.VOTES.keys()
+        for voter in list(candidates):
+            if nick in var.VOTES[voter]:
+                var.VOTES[voter].remove(nick)
+                if not var.VOTES[voter]:
+                    del var.VOTES[voter]
+        var.NO_LYNCH.append(nick)
+        cli.msg(chan, "{0}: You chose to vote for nobody.".format(nick))
+        
+        chk_decision(cli)
+        return
+
 @cmd("lynch", "vote", "v")
 def vote(cli, nick, chann_, rest):
     """Use this to vote for a candidate to be lynched"""
@@ -2649,6 +2701,8 @@ def vote(cli, nick, chann_, rest):
                       "After recovering, you notice that you are still in your bed. " +
                       "That entire sequence of events must have just been a dream...")
         return
+    if nick in var.NO_LYNCH:
+        var.NO_LYNCH.remove(nick)
 
     pl = var.list_players()
     pl_l = [x.strip().lower() for x in pl]
@@ -2955,6 +3009,9 @@ def retract(cli, nick, chann_, rest):
         cli.notice(nick, ("Lynching is only allowed during the day. "+
                           "Please wait patiently for morning."))
         return
+    if nick in var.NO_LYNCH:
+        var.NO_LYNCH.remove(nick)
+        cli.msg(chan, "\u0002{0}\u0002's mind changed and will vote for today".format(nick))
 
     candidates = var.VOTES.keys()
     for voter in list(candidates):
@@ -5607,8 +5664,10 @@ if botconfig.DEBUG_MODE or botconfig.ALLOWED_NORMAL_MODE_COMMANDS:
             cli.msg(chan, s)
 
 
-    @cmd("fgame", admin_only=True)
+    @cmd("fgame", admin_only=True, raw_nick=True)
     def fgame(cli, nick, chan, rest):
+        (nick, _, __, cloak) = parse_nick(nick)
+
         pl = var.list_players()
 
         if var.PHASE == 'none':
@@ -5619,7 +5678,7 @@ if botconfig.DEBUG_MODE or botconfig.ALLOWED_NORMAL_MODE_COMMANDS:
             cli.notice(nick, 'Werewolf is already in play.')
             return
 
-        if nick not in pl and nick not in botconfig.ADMINS + botconfig.OWNERS:
+        if nick not in pl and cloak not in botconfig.ADMINS + botconfig.OWNERS:
             cli.notice(nick, 'You\'re currently not playing.')
             return
 
@@ -5627,10 +5686,11 @@ if botconfig.DEBUG_MODE or botconfig.ALLOWED_NORMAL_MODE_COMMANDS:
 
         if rest:
             if cgamemode(cli, rest):
-                cli.msg(chan, ("\u0002{0}\u0002 has changed the "+
-                                "game settings successfully.").format(nick))
+                cli.msg(chan, ('\u0002{}\u0002 has changed the game settings '
+                                'successfully.').format(nick))
 
-    def fgame_help(args = ""):
+
+    def fgame_help(args=''):
         args = args.strip()
 
         if not args:
