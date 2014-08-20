@@ -1,3 +1,6 @@
+# Any setting in here will be overriden if it is present in botconfig.py
+# These are defaults that will be used if the config isn't updated
+
 PING_WAIT = 300  # Seconds
 PING_MIN_WAIT = 30 # How long !start has to wait after a !ping
 MINIMUM_WAIT = 60
@@ -5,17 +8,25 @@ EXTRA_WAIT = 20
 EXTRA_WAIT_JOIN = 0 # Add this many seconds to the waiting time for each !join
 WAIT_AFTER_JOIN = 10 # Wait at least this many seconds after the last join
 MAXIMUM_WAITED = 3  # limit for amount of !wait's
+
 STATS_RATE_LIMIT = 60
 VOTES_RATE_LIMIT = 60
 ADMINS_RATE_LIMIT = 300
 GSTATS_RATE_LIMIT = 0
 PSTATS_RATE_LIMIT = 0
 TIME_RATE_LIMIT = 10
+
 SHOTS_MULTIPLIER = .12  # ceil(shots_multiplier * len_players) = bullets given
 SHARPSHOOTER_MULTIPLIER = 0.06
+FIRE_MULTIPLIER = .1
+PYRO_MULTIPLIER = 0.06
+
+DRUNK_SHOTS_MULTIPLIER = 3
+FIRE_DRUNK_MULTIPLIER = 3
+
 MIN_PLAYERS = 4
 MAX_PLAYERS = 24
-DRUNK_SHOTS_MULTIPLIER = 3
+
 NIGHT_TIME_LIMIT = 120
 NIGHT_TIME_WARN = 90  # should be less than NIGHT_TIME_LIMIT
 DAY_TIME_LIMIT = 720
@@ -24,15 +35,19 @@ JOIN_TIME_LIMIT = 3600
 SHORT_DAY_PLAYERS = 6 # Number of players left to have a short day - these can only be set if the above are also set
 SHORT_DAY_LIMIT = 520
 SHORT_DAY_WARN = 400
+
 TIME_LORD_DAY_LIMIT = 60 # If time lord dies, the timers get set to this instead (60s day, 30s night)
 TIME_LORD_DAY_WARN = 45
 TIME_LORD_NIGHT_LIMIT = 30
 TIME_LORD_NIGHT_WARN = 20
+
 KILL_IDLE_TIME = 300
 WARN_IDLE_TIME = 180
 PART_GRACE_TIME = 30
 QUIT_GRACE_TIME = 30
+
 MAX_PRIVMSG_TARGETS = 4 #  controls how many people it does in one /msg; only works for messages that are the same
+
 LEAVE_STASIS_PENALTY = 1
 IDLE_STASIS_PENALTY = 1
 PART_STASIS_PENALTY = 1
@@ -40,13 +55,18 @@ PART_STASIS_PENALTY = 1
 GOAT_HERDER = True
 
 SELF_LYNCH_ALLOWED = True
+NO_LYNCH_ALLOWED = False
+
 HIDDEN_TRAITOR = True
 HIDDEN_AMNESIAC = False # amnesiac still shows as amnesiac if killed even after turning
 HIDDEN_CLONE = False
+
 GUARDIAN_ANGEL_CAN_GUARD_SELF = True
 START_WITH_DAY = False
+
 WOLF_STEALS_GUN = True  # at night, the wolf can steal steal the victim's bullets
 ROLE_REVEAL = True
+
 LOVER_WINS_WITH_FOOL = False # if fool is lynched, does their lover win with them?
 CAN_KILL_TRAITOR = False # can the wolves kill traitor?
 
@@ -81,13 +101,23 @@ BARE_LOG_FILENAME = ""
 GUN_CHANCES              =   (   5/7  ,  1/7  ,   1/7   ,   2/5   )
 WOLF_GUN_CHANCES         =   (   5/7  ,  1/7  ,   1/7   ,   2/5   )
 DRUNK_GUN_CHANCES        =   (   2/7  ,  3/7  ,   2/7   ,   2/5   )
+
+FIRE_CHANCES             =   (   4/9  ,  2/9  ,   3/9   ,   2/3   )
+WOLF_FIRE_CHANCES        =   (   4/9  ,  2/9  ,   3/9   ,   2/3   )
+DRUNK_FIRE_CHANCES       =   (   1/9  ,  4/9  ,   4/9   ,   2/3   )
+# these guys are pro, they always hit and kill
 SHARPSHOOTER_GUN_CHANCES =   (    1   ,   0   ,    0    ,    1    )
+PYROMANIAC_FIRE_CHANCES  =   (    1   ,   0   ,    0    ,    1    )
 
 GUNNER_KILLS_WOLF_AT_NIGHT_CHANCE = 1/4
+ARSONIST_KILLS_WOLF_AT_NIGHT_CHANCE = 2/3
+
 GUARDIAN_ANGEL_DIES_CHANCE = 0
 BODYGUARD_DIES_CHANCE = 0
+
 DETECTIVE_REVEALED_CHANCE = 2/5
 SHARPSHOOTER_CHANCE = 1/5 # if sharpshooter is enabled, chance that a gunner will become a sharpshooter instead
+PYROMANIAC_CHANCE = 1/5
 
 AMNESIAC_NIGHTS = 3 # amnesiac gets to know their actual role on this night
 
@@ -154,8 +184,10 @@ ROLE_GUIDE = {# village roles
               # templates
               "cursed villager" : (  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  2  ,  2  ,  2  ,  2  ),
               "gunner"          : (  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  2  ,  2  ,  2  ),
-              # NB: for sharpshooter, numbers can't be higher than gunner, since gunners get converted to sharpshooters. This is the MAX number of gunners that can be converted.
+              "arsonist"        : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              # NB: for sharpshooter/pyromaniac, numbers can't be higher than gunner/arsonist, since they get converted (to sharp/pyro). This is the MAX number of players that can be converted.
               "sharpshooter"    : (  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "pyromaniac"      : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
               "mayor"           : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ),
               "assassin"        : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
               "bureaucrat"      : (  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
@@ -178,6 +210,8 @@ AMNESIAC_BLACKLIST = ["monster", "amnesiac", "minion", "matchmaker", "clone"]
 TEMPLATE_RESTRICTIONS = {"cursed villager" : ["wolf", "wolf cub", "werecrow", "seer", "oracle", "augur", "fool", "jester", "mad scientist"],
                          "gunner"          : ["wolf", "traitor", "werecrow", "hag", "wolf cub", "sorcerer", "minion", "cultist", "fool", "lycan", "jester"],
                          "sharpshooter"    : ["wolf", "traitor", "werecrow", "hag", "wolf cub", "sorcerer", "minion", "cultist", "fool", "lycan", "jester"],
+                         "arsonist"        : ["wolf", "traitor", "werecrow", "hag", "wolf cub", "sorcerer", "minion", "cultist", "fool", "lycan", "jester"],
+                         "pyromaniac"      : ["wolf", "traitor", "werecrow", "hag", "wolf cub", "sorcerer", "minion", "cultist", "fool", "lycan", "jester"],
                          "mayor"           : ["fool", "jester", "monster"],
                          "assassin"        : ["seer", "augur", "oracle", "harlot", "detective", "bodyguard", "guardian angel", "village drunk", "hunter", "shaman", "crazed shaman", "fool", "mayor", "wolf", "werecrow", "wolf cub", "traitor", "lycan"],
                          "bureaucrat"      : [],
@@ -200,87 +234,22 @@ LYNCH_MESSAGES_NO_REVEAL = ("The villagers, after much debate, finally decide on
                             "Resigned to the inevitable, \u0002{0}\u0002 is led to the gallows.",
                             "Before the rope is pulled, \u0002{0}\u0002 throws a grenade at the mob. The grenade explodes early.")
 
-import botconfig
-
-RULES = (botconfig.CHANNEL + " channel rules: http://wolf.xnrand.com/rules")
+RULES = (CHANNEL + " channel rules:\n"+
+                   "1) Do not share information after death. "+
+                   "2) Do not play with bots or clones. "+
+                   "3) Do not quit unless you need to leave. "+
+                   "4) Do not paste messages from the bot during the game. "+
+                   "5) Do not ping people unless they have played recently.\n"+
+                   "6) Do not advertise another channel or network. "+
+                   "7) Do not take advantage of a player timing out. "+
+                   "8) Using anti-idle messages or /whois idle times \u0002IS\u0002 cheating. "+
+                   "9) If you are unsure whether you can do something or not, ask an operator. "+
+                   "10) Channel and bot operators have the final word.")
 
 # Other settings:
 
 OPT_IN_PING = False  # instead of !away/!back, users can opt-in to be pinged
 PING_IN = []  # cloaks of users who have opted in for ping
-
-is_role = lambda plyr, rol: rol in ROLES and plyr in ROLES[rol]
-
-def plural(role):
-    if role == "wolf": return "wolves"
-    elif role == "person": return "people"
-    else: return role + "s"
-
-def list_players(roles = None):
-    if roles == None:
-        roles = ROLES.keys()
-    pl = []
-    for x in roles:
-        if x in TEMPLATE_RESTRICTIONS.keys():
-            continue
-        for p in ROLES[x]:
-            pl.append(p)
-    return pl
-
-def list_players_and_roles():
-    plr = {}
-    for x in ROLES.keys():
-        if x in TEMPLATE_RESTRICTIONS.keys():
-            continue # only get actual roles
-        for p in ROLES[x]:
-            plr[p] = x
-    return plr
-
-get_role = lambda plyr: list_players_and_roles()[plyr]
-
-def get_reveal_role(nick):
-    if HIDDEN_TRAITOR and get_role(nick) == "traitor":
-        return DEFAULT_ROLE
-    elif HIDDEN_AMNESIAC and nick in ORIGINAL_ROLES["amnesiac"]:
-        return "amnesiac"
-    elif HIDDEN_CLONE and nick in ORIGINAL_ROLES["clone"]:
-        return "clone"
-    else:
-        return get_role(nick)
-
-def del_player(pname):
-    prole = get_role(pname)
-    ROLES[prole].remove(pname)
-    tpls = get_templates(pname)
-    for t in tpls:
-        ROLES[t].remove(pname)
-
-def get_templates(nick):
-    tpl = []
-    for x in TEMPLATE_RESTRICTIONS.keys():
-        try:
-            if nick in ROLES[x]:
-                tpl.append(x)
-        except KeyError:
-            pass
-
-    return tpl
-
-def break_long_message(phrases, joinstr = " "):
-    message = ""
-    count = 0
-    for phrase in phrases:
-        # IRC max is 512, but freenode splits around 380ish, make 300 to have plenty of wiggle room
-        if count + len(joinstr) + len(phrase) > 300:
-            message += "\n" + phrase
-            count = len(phrase)
-        elif message == "":
-            message = phrase
-            count = len(phrase)
-        else:
-            message += joinstr + phrase
-            count += len(joinstr) + len(phrase)
-    return message
 
 class InvalidModeException(Exception): pass
 def game_mode(name):
@@ -449,6 +418,97 @@ class NoRevealMode(object):
             # templates
             "cursed villager"   : (   0   ,   1   ,   1   ,   1   ,   1   ,   1   ,   2   ,   2   ),
             })
+            
+# No more editing below
+
+is_role = lambda plyr, rol: rol in ROLES and plyr in ROLES[rol]
+
+# Argument --debug means start in debug mode
+#          --verbose means to print a lot of stuff (when not in debug mode)
+
+
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--debug', action='store_true')
+parser.add_argument('--sabotage', action='store_true')
+parser.add_argument('--verbose', action='store_true')
+
+args = parser.parse_args()
+DEBUG_MODE = args.debug if not DISABLE_DEBUG_MODE else False
+VERBOSE_MODE = args.verbose
+
+DEFAULT_MODULE = "wolfgame"
+
+def plural(role):
+    if role == "wolf": return "wolves"
+    elif role == "person": return "people"
+    else: return role + "s"
+
+def list_players(roles = None):
+    if roles == None:
+        roles = ROLES.keys()
+    pl = []
+    for x in roles:
+        if x in TEMPLATE_RESTRICTIONS.keys():
+            continue
+        for p in ROLES[x]:
+            pl.append(p)
+    return pl
+
+def list_players_and_roles():
+    plr = {}
+    for x in ROLES.keys():
+        if x in TEMPLATE_RESTRICTIONS.keys():
+            continue # only get actual roles
+        for p in ROLES[x]:
+            plr[p] = x
+    return plr
+
+get_role = lambda plyr: list_players_and_roles()[plyr]
+
+def get_reveal_role(nick):
+    if HIDDEN_TRAITOR and get_role(nick) == "traitor":
+        return DEFAULT_ROLE
+    elif HIDDEN_AMNESIAC and nick in ORIGINAL_ROLES["amnesiac"]:
+        return "amnesiac"
+    elif HIDDEN_CLONE and nick in ORIGINAL_ROLES["clone"]:
+        return "clone"
+    else:
+        return get_role(nick)
+
+def del_player(pname):
+    prole = get_role(pname)
+    ROLES[prole].remove(pname)
+    tpls = get_templates(pname)
+    for t in tpls:
+        ROLES[t].remove(pname)
+
+def get_templates(nick):
+    tpl = []
+    for x in TEMPLATE_RESTRICTIONS.keys():
+        try:
+            if nick in ROLES[x]:
+                tpl.append(x)
+        except KeyError:
+            pass
+
+    return tpl
+
+def break_long_message(phrases, joinstr = " "):
+    message = ""
+    count = 0
+    for phrase in phrases:
+        # IRC max is 512, but freenode splits around 380ish, make 300 to have plenty of wiggle room
+        if count + len(joinstr) + len(phrase) > 300:
+            message += "\n" + phrase
+            count = len(phrase)
+        elif message == "":
+            message = phrase
+            count = len(phrase)
+        else:
+            message += joinstr + phrase
+            count += len(joinstr) + len(phrase)
+    return message
 
 # Persistence
 

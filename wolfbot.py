@@ -20,6 +20,7 @@
 from oyoyo.client import IRCClient
 import logging
 import botconfig
+import settings.wolfgame as settings
 import time
 import traceback
 import modules.common
@@ -31,7 +32,7 @@ class UTCFormatter(logging.Formatter):
 
 
 def main():
-    if botconfig.DEBUG_MODE:
+    if settings.DEBUG_MODE:
         logging.basicConfig(level=logging.DEBUG)
         logger = logging.getLogger()
     else:
@@ -40,7 +41,7 @@ def main():
         fh = logging.FileHandler("errors.log")
         fh.setLevel(logging.WARNING)
         logger.addHandler(fh)
-        if botconfig.VERBOSE_MODE:
+        if settings.VERBOSE_MODE:
             hdlr = logging.StreamHandler(sys.stdout)
             hdlr.setLevel(logging.DEBUG)
             logger.addHandler(hdlr)

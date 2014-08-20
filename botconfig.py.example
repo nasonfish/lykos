@@ -9,7 +9,7 @@ CHANGING_HOST_QUIT_MESSAGE = "Changing host"
 
 ADMIN_CHAN = "" # logging chan. leave blank to disable logging
 ALT_CHANS = "" # will join all of these channels upon connect if RAW_JOIN in .\settings\wolfgame.py is set to True
-SPECIAL_CHAN = "" # special channel for various purposes. leave blank if you don't want the bot to join it
+SPECIAL_CHAN = "" # special channel for various purposes, such as an op channel. leave blank if you don't want the bot to join it
 DEV_CHAN = "" # development chan. bot will automatically fetch updates whenever the GitHub bot joins and tells as such. ALLOW_GIT in .\settings\wolfgame.py must be True
 DEV_BOT = "" # github bot's nickname, to which it will check for updates
 
@@ -29,31 +29,442 @@ IGNORE_HIDDEN_COMMANDS = True # Ignore commands sent to @#channel or +#channel
 ALLOW_NOTICE_COMMANDS = False  # allow /notice #channel !command to be interpreted as a command
 ALLOW_PRIVATE_NOTICE_COMMANDS = False  # allow !command's from /notice (Private)
 PING_NOTICE = True # sends a /notice to the whole channel when !ping is used, instead of a msg
-REVERSE_PING = True # needs users to send !in and !out to be pinged or not if set to True
+REVERSE_PING = False # needs users to send !in and !out to be pinged or not if set to True
 OP_NEEDED = True # defines if the +o status is needed for the bot to work
 
 ALLOWED_NORMAL_MODE_COMMANDS = []  # debug mode commands to be allowed in normal mode
+ALLOWED_DEV_CHANNEL_COMMANDS = ["faftergame", "raw", "fpull"]
+ALLOWED_SPECIAL_CHANNEL_COMMANDS = ["stats", "votes", "time", "roles", "faftergame", "raw", "flastgame", "fpull", "fgame"]
+ALLOWED_ADMIN_CHANNEL_COMMANDS = ["stats", "votes", "time", "roles", "faftergame", "raw", "flastgame", "fpull"]
+ALLOWED_ALT_CHANNELS_COMMANDS = []
+ALLOWED_ALL_CHANNELS_COMMANDS = ["eval", "revealroles", "exec", "fdie", "fbye", "rules", "help", "frestart", "update", "upd", "admins", "ops", "coin", "pony"]
 
 OWNERS = ("ownerhost", )  # the comma is required at the end if there is one owner
 ADMINS = ("adminhost1", "adminhost2")  # glob syntax supported (wildcards)
-OWNERS_ACCOUNTS = ("owneraccount", ) # same as OWNERS, except with accounts
-ADMINS_ACCOUNTS = ("adminaccount1", "adminaccount2")
 ALLOW = {"cloakof/fwaiter": ("fwait",),
          "cloakof/?omeone_else": ("fday","fnight")}
 DENY = {}
 
-# Stop editing here
+OWNERS_ACCOUNTS = ("owneraccount", ) # same as OWNERS, except with accounts
+ADMINS_ACCOUNTS = ("adminaccount1", "adminaccount2")
+ALLOW_ACCOUNTS = {"account1": ("fwait",),
+                  "account2": ("fday","fnight")}
+DENY_ACCOUNTS = {} # that'd be pretty useless but oh well, it's there anyway
 
-# Argument --debug means start in debug mode
-#          --verbose means to print a lot of stuff (when not in debug mode)
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--debug', action='store_true')
-parser.add_argument('--sabotage', action='store_true')
-parser.add_argument('--verbose', action='store_true')
+PING_WAIT = 300  # Seconds
+PING_MIN_WAIT = 30 # How long !start has to wait after a !ping
+MINIMUM_WAIT = 60
+EXTRA_WAIT = 20
+EXTRA_WAIT_JOIN = 0 # Add this many seconds to the waiting time for each !join
+WAIT_AFTER_JOIN = 10 # Wait at least this many seconds after the last join
+MAXIMUM_WAITED = 3  # limit for amount of !wait's
 
-args = parser.parse_args()
-DEBUG_MODE = args.debug if not DISABLE_DEBUG_MODE else False
-VERBOSE_MODE = args.verbose
+STATS_RATE_LIMIT = 60
+VOTES_RATE_LIMIT = 60
+ADMINS_RATE_LIMIT = 300
+GSTATS_RATE_LIMIT = 0
+PSTATS_RATE_LIMIT = 0
+TIME_RATE_LIMIT = 10
 
-DEFAULT_MODULE = "sabotage" if args.sabotage else "wolfgame"
+SHOTS_MULTIPLIER = .12  # ceil(shots_multiplier * len_players) = bullets given
+SHARPSHOOTER_MULTIPLIER = 0.06
+FIRE_MULTIPLIER = .1
+PYRO_MULTIPLIER = 0.06
+
+DRUNK_SHOTS_MULTIPLIER = 3
+FIRE_DRUNK_MULTIPLIER = 3
+
+MIN_PLAYERS = 4
+MAX_PLAYERS = 24
+
+NIGHT_TIME_LIMIT = 120
+NIGHT_TIME_WARN = 90  # should be less than NIGHT_TIME_LIMIT
+DAY_TIME_LIMIT = 720
+DAY_TIME_WARN = 600   # should be less than DAY_TIME_LIMIT
+JOIN_TIME_LIMIT = 3600
+SHORT_DAY_PLAYERS = 6 # Number of players left to have a short day - these can only be set if the above are also set
+SHORT_DAY_LIMIT = 520
+SHORT_DAY_WARN = 400
+
+TIME_LORD_DAY_LIMIT = 60 # If time lord dies, the timers get set to this instead (60s day, 30s night)
+TIME_LORD_DAY_WARN = 45
+TIME_LORD_NIGHT_LIMIT = 30
+TIME_LORD_NIGHT_WARN = 20
+
+KILL_IDLE_TIME = 300
+WARN_IDLE_TIME = 180
+PART_GRACE_TIME = 30
+QUIT_GRACE_TIME = 30
+
+MAX_PRIVMSG_TARGETS = 4 #  controls how many people it does in one /msg; only works for messages that are the same
+
+LEAVE_STASIS_PENALTY = 1
+IDLE_STASIS_PENALTY = 1
+PART_STASIS_PENALTY = 1
+
+GOAT_HERDER = True
+
+SELF_LYNCH_ALLOWED = True
+NO_LYNCH_ALLOWED = False
+
+HIDDEN_TRAITOR = True
+HIDDEN_AMNESIAC = False # amnesiac still shows as amnesiac if killed even after turning
+HIDDEN_CLONE = False
+
+GUARDIAN_ANGEL_CAN_GUARD_SELF = True
+START_WITH_DAY = False
+
+WOLF_STEALS_GUN = True  # at night, the wolf can steal steal the victim's bullets
+ROLE_REVEAL = True
+
+LOVER_WINS_WITH_FOOL = False # if fool is lynched, does their lover win with them?
+CAN_KILL_TRAITOR = False # can the wolves kill traitor?
+
+CARE_BOLD = False
+CARE_COLOR = False
+KILL_COLOR = False
+KILL_BOLD = False
+CARE_ADVERTISING = False
+KILL_ADVERTISING = False
+
+EXEMPT_ADMINS = True # exempt admins, owners and/or chanops from being kicked by the above
+EXEMPT_OWNERS = True
+EXEMPT_OPS = True
+
+AUTO_OP_DEOP = True # ops and deops chanops on start and endgame
+
+RAW_JOIN = True # allow to join other chans than the default one
+LOG_CHAN = False # logs activity in botconfig.ADMIN_CHAN - WARNING: Can heavily lags big games
+LOG_AUTO_TOGGLE = True # automatically disables logging if len(pl) >= MIN_LOG_PLAYERS
+MIN_LOG_PLAYERS = 12
+AUTO_LOG_TOGGLE = False # automatically toggle logging when an admin gets in the admin_chan
+MINIMALIST_LOG = True
+
+ALLOW_GIT = True # enables automatic git-pull/restart feature
+
+NS_GHOST = False # if the nickname is unavailable, sends GHOST if true, else sends REGAIN
+
+LOG_FILENAME = ""
+BARE_LOG_FILENAME = ""
+
+                         #       HIT    MISS    SUICIDE   HEADSHOT
+GUN_CHANCES              =   (   5/7  ,  1/7  ,   1/7   ,   2/5   )
+WOLF_GUN_CHANCES         =   (   5/7  ,  1/7  ,   1/7   ,   2/5   )
+DRUNK_GUN_CHANCES        =   (   2/7  ,  3/7  ,   2/7   ,   2/5   )
+
+FIRE_CHANCES             =   (   4/9  ,  2/9  ,   3/9   ,   2/3   )
+WOLF_FIRE_CHANCES        =   (   4/9  ,  2/9  ,   3/9   ,   2/3   )
+DRUNK_FIRE_CHANCES       =   (   1/9  ,  4/9  ,   4/9   ,   2/3   )
+# these guys are pro, they always hit and kill
+SHARPSHOOTER_GUN_CHANCES =   (    1   ,   0   ,    0    ,    1    )
+PYROMANIAC_FIRE_CHANCES  =   (    1   ,   0   ,    0    ,    1    )
+
+GUNNER_KILLS_WOLF_AT_NIGHT_CHANCE = 1/4
+ARSONIST_KILLS_WOLF_AT_NIGHT_CHANCE = 2/3
+
+GUARDIAN_ANGEL_DIES_CHANCE = 0
+BODYGUARD_DIES_CHANCE = 0
+
+DETECTIVE_REVEALED_CHANCE = 2/5
+SHARPSHOOTER_CHANCE = 1/5 # if sharpshooter is enabled, chance that a gunner will become a sharpshooter instead
+PYROMANIAC_CHANCE = 1/5
+
+AMNESIAC_NIGHTS = 3 # amnesiac gets to know their actual role on this night
+
+#                                     SHAMAN    CRAZED SHAMAN
+TOTEM_CHANCES = {       "death": (     1/8     ,     1/15     ),
+                   "protection": (     1/8     ,     1/15     ),
+                      "silence": (     1/8     ,     1/15     ),
+                    "revealing": (     1/8     ,     1/15     ),
+                  "desperation": (     1/8     ,     1/15     ),
+                   "impatience": (     1/8     ,     1/15     ),
+                     "pacifism": (     1/8     ,     1/15     ),
+                    "influence": (     1/8     ,     1/15     ),
+                   "narcolepsy": (      0      ,     1/15     ),
+                     "exchange": (      0      ,     1/15     ),
+                  "lycanthropy": (      0      ,     1/15     ),
+                         "luck": (      0      ,     1/15     ),
+                   "pestilence": (      0      ,     1/15     ),
+                  "retribution": (      0      ,     1/15     ),
+                 "misdirection": (      0      ,     1/15     ),
+                }
+
+GAME_MODES = {}
+AWAY = ['services.', 'services.int']  # cloaks of people who are away.
+SIMPLE_NOTIFY = []  # cloaks of people who !simple, who want everything /notice'd
+PING_IN = []
+
+# TODO: move this to a game mode called "fixed" once we implement a way to randomize roles (and have that game mode be called "random")
+DEFAULT_ROLE = "villager"
+ROLE_INDEX =                      (  4  ,  6  ,  7  ,  8  ,  9  , 10  , 11  , 12  , 13  , 15  , 16  , 18  , 20  , 21  , 23  , 24  )
+ROLE_GUIDE = {# village roles
+              "villager"        : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "seer"            : (  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "oracle"          : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "augur"           : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ),
+              "village drunk"   : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "harlot"          : (  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "guardian angel"  : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "bodyguard"       : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "detective"       : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "village elder"   : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "time lord"       : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "matchmaker"      : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "mad scientist"   : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "hunter"          : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "shaman"          : (  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              # wolf roles
+              "wolf"            : (  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  2  ,  2  ,  2  ,  2  ,  3  ,  3  ,  3  ),
+              "traitor"         : (  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "werecrow"        : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "cultist"         : (  0  ,  0  ,  1  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "minion"          : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "hag"             : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ),
+              "wolf cub"        : (  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "sorcerer"        : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ),
+              # neutral roles
+              "lycan"           : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "vengeful ghost"  : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "clone"           : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "crazed shaman"   : (  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "fool"            : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "jester"          : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "monster"         : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "amnesiac"        : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ),
+              # templates
+              "cursed villager" : (  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  2  ,  2  ,  2  ,  2  ),
+              "gunner"          : (  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  2  ,  2  ,  2  ),
+              "arsonist"        : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              # NB: for sharpshooter/pyromaniac, numbers can't be higher than gunner/arsonist, since they get converted (to sharp/pyro). This is the MAX number of players that can be converted.
+              "sharpshooter"    : (  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "pyromaniac"      : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ),
+              "mayor"           : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ),
+              "assassin"        : (  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              "bureaucrat"      : (  0  ,  0  ,  0  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ,  1  ),
+              }
+
+# Harlot dies when visiting, gunner kills when shooting, GA and bodyguard have a chance at dying when guarding
+# If every wolf role dies, the game ends and village wins and there are no remaining traitors, the game ends and villagers win
+WOLF_ROLES     = ["wolf", "werecrow", "wolf cub"]
+# Access to wolfchat, and counted towards the # of wolves vs villagers when determining if a side has won
+WOLFCHAT_ROLES = ["wolf", "traitor", "werecrow", "hag", "wolf cub", "sorcerer"]
+# Wins with the wolves, even if the roles are not necessarily wolves themselves
+WOLFTEAM_ROLES = ["wolf", "traitor", "werecrow", "hag", "wolf cub", "sorcerer", "minion", "cultist"]
+# These roles never win as a team, only ever individually (either instead of or in addition to the regular winners)
+TRUE_NEUTRAL_ROLES = ["crazed shaman", "fool", "jester", "monster", "clone"]
+# These are the roles that will NOT be used for when amnesiac turns, everything else is fair game!
+AMNESIAC_BLACKLIST = ["monster", "amnesiac", "minion", "matchmaker", "clone"]
+
+# The roles in here are considered templates and will be applied on TOP of other roles. The restrictions are a list of roles that they CANNOT be applied to
+# NB: if you want a template to apply to everyone, list it here but make the restrictions an empty list. Templates not listed here are considered full roles instead
+TEMPLATE_RESTRICTIONS = {"cursed villager" : ["wolf", "wolf cub", "werecrow", "seer", "oracle", "augur", "fool", "jester", "mad scientist"],
+                         "gunner"          : ["wolf", "traitor", "werecrow", "hag", "wolf cub", "sorcerer", "minion", "cultist", "fool", "lycan", "jester"],
+                         "sharpshooter"    : ["wolf", "traitor", "werecrow", "hag", "wolf cub", "sorcerer", "minion", "cultist", "fool", "lycan", "jester"],
+                         "arsonist"        : ["wolf", "traitor", "werecrow", "hag", "wolf cub", "sorcerer", "minion", "cultist", "fool", "lycan", "jester"],
+                         "pyromaniac"      : ["wolf", "traitor", "werecrow", "hag", "wolf cub", "sorcerer", "minion", "cultist", "fool", "lycan", "jester"],
+                         "mayor"           : ["fool", "jester", "monster"],
+                         "assassin"        : ["seer", "augur", "oracle", "harlot", "detective", "bodyguard", "guardian angel", "village drunk", "hunter", "shaman", "crazed shaman", "fool", "mayor", "wolf", "werecrow", "wolf cub", "traitor", "lycan"],
+                         "bureaucrat"      : [],
+                         }
+
+# Roles listed here cannot be used in !fgame roles=blah. If they are defined in ROLE_GUIDE they may still be used.
+DISABLED_ROLES = []
+
+NO_VICTIMS_MESSAGES = ("The body of a young penguin pet is found.",
+                       "A pool of blood and wolf paw prints are found.",
+                       "Traces of wolf fur are found.")
+LYNCH_MESSAGES = ("The villagers, after much debate, finally decide on lynching \u0002{0}\u0002, who turned out to be... a{1} \u0002{2}\u0002.",
+                  "Under a lot of noise, the pitchfork-bearing villagers lynch \u0002{0}\u0002, who turned out to be... a{1} \u0002{2}\u0002.",
+                  "Despite protests, the mob drags their victim to the hanging tree. \u0002{0}\u0002 succumbs to the will of the horde, and is hanged. The villagers have killed a{1} \u0002{2}\u0002.",
+                  "Resigned to the inevitable, \u0002{0}\u0002 is led to the gallows. Once the twitching stops, it is discovered that the village lynched a{1} \u0002{2}\u0002.",
+                  "Before the rope is pulled, \u0002{0}\u0002, a{1} \u0002{2}\u0002, throws a grenade at the mob. The grenade explodes early.")
+LYNCH_MESSAGES_NO_REVEAL = ("The villagers, after much debate, finally decide on lynching \u0002{0}\u0002.",
+                            "Under a lot of noise, the pitchfork-bearing villagers lynch \u0002{0}\u0002.",
+                            "Despite protests, the mob drags their victim to the hanging tree. \u0002{0}\u0002 succumbs to the will of the horde, and is hanged.",
+                            "Resigned to the inevitable, \u0002{0}\u0002 is led to the gallows.",
+                            "Before the rope is pulled, \u0002{0}\u0002 throws a grenade at the mob. The grenade explodes early.")
+
+RULES = (CHANNEL + " channel rules:\n"+
+                   "1) Do not share information after death. "+
+                   "2) Do not play with bots or clones. "+
+                   "3) Do not quit unless you need to leave. "+
+                   "4) Do not paste messages from the bot during the game. "+
+                   "5) Do not ping people unless they have played recently.\n"+
+                   "6) Do not advertise another channel or network. "+
+                   "7) Do not take advantage of a player timing out. "+
+                   "8) Using anti-idle messages or /whois idle times \u0002IS\u0002 cheating. "+
+                   "9) If you are unsure whether you can do something or not, ask an operator. "+
+                   "10) Channel and bot operators have the final word.")
+
+# Other settings:
+
+OPT_IN_PING = False  # instead of !away/!back, users can opt-in to be pinged
+PING_IN = []  # cloaks of users who have opted in for ping
+
+class InvalidModeException(Exception): pass
+def game_mode(name):
+    def decor(c):
+        GAME_MODES[name] = c
+        return c
+    return decor
+
+def reset_roles(index):
+    newguide = {}
+    for role in ROLE_GUIDE:
+        newguide[role] = tuple([0 for i in index])
+    return newguide
+
+# TODO: implement more game modes
+@game_mode("roles")
+class ChangedRolesMode(object):
+    """Example: !fgame roles=wolf:1,seer:0,guardian angel:1"""
+
+    def __init__(self, arg = ""):
+        self.ROLE_GUIDE = ROLE_GUIDE.copy()
+        self.ROLE_INDEX = (MIN_PLAYERS,)
+        pairs = arg.split(",")
+        if not pairs:
+            raise InvalidModeException("Invalid syntax for mode roles. arg={0}".format(arg))
+
+        for role in self.ROLE_GUIDE.keys():
+            self.ROLE_GUIDE[role] = (0,)
+        for pair in pairs:
+            change = pair.split(":")
+            if len(change) != 2:
+                raise InvalidModeException("Invalid syntax for mode roles. arg={0}".format(arg))
+            role, num = change
+            try:
+                if role.lower() in DISABLED_ROLES:
+                    raise InvalidModeException("The role \u0002{0}\u0002 has been disabled.".format(role))
+                elif role.lower() in self.ROLE_GUIDE:
+                    self.ROLE_GUIDE[role.lower()] = tuple([int(num)] * len(ROLE_INDEX))
+                elif role.lower() == "default" and num.lower() in self.ROLE_GUIDE:
+                    if num.lower() == "villager" or num.lower() == "cultist":
+                        self.DEFAULT_ROLE = num.lower()
+                    else:
+                        raise InvalidModeException("The default role must be either \u0002villager\u0002 or \u0002cultist\u0002.")
+                elif role.lower() == "role reveal" or role.lower() == "reveal roles":
+                    num = num.lower()
+                    if num == "on" or num == "true" or num == "yes" or num == "1":
+                        self.ROLE_REVEAL = True
+                    elif num == "off" or num == "false" or num == "no" or num == "0":
+                        self.ROLE_REVEAL = False
+                    else:
+                        raise InvalidModeException("Did not recognize value \u0002{0}\u0002 for role reveal.".format(num))
+                else:
+                    raise InvalidModeException(("The role \u0002{0}\u0002 "+
+                                                "is not valid.").format(role))
+            except ValueError:
+                raise InvalidModeException("A bad value was used in mode roles.")
+
+@game_mode("default")
+class DefaultMode(object):
+    def __init__(self):
+        # No extra settings, just an explicit way to revert to default settings
+        pass
+
+@game_mode("evilvillage")
+class EvilVillageMode(object):
+    def __init__(self):
+        self.MIN_PLAYERS = 6
+        self.MAX_PLAYERS = 18
+        self.DEFAULT_ROLE = "cultist"
+        self.ROLE_INDEX =         (   6   ,  10   ,  15   )
+        self.ROLE_GUIDE = reset_roles(self.ROLE_INDEX)
+        self.ROLE_GUIDE.update({# village roles
+              "oracle"          : (   1   ,   1   ,   0   ),
+              "seer"            : (   0   ,   0   ,   1   ),
+              "guardian angel"  : (   0   ,   1   ,   1   ),
+              "shaman"          : (   1   ,   1   ,   1   ),
+              "hunter"          : (   0   ,   0   ,   1   ),
+              "villager"        : (   0   ,   0   ,   1   ),
+              # wolf roles
+              "wolf"            : (   1   ,   1   ,   2   ),
+              "minion"          : (   0   ,   1   ,   1   ),
+              # neutral roles
+              "fool"            : (   0   ,   1   ,   1   ),
+              })
+
+@game_mode("classic")
+class ClassicMode(object):
+    def __init__(self):
+        self.MIN_PLAYERS = 4
+        self.MAX_PLAYERS = 21
+        self.ROLE_INDEX =         (   4   ,   6   ,   8   ,  10   ,  12   ,  15   ,  17   ,  18   ,  20   )
+        self.ROLE_GUIDE = reset_roles(self.ROLE_INDEX)
+        self.ROLE_GUIDE.update({# village roles
+              "seer"            : (   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+              "village drunk"   : (   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+              "harlot"          : (   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+              "bodyguard"       : (   0   ,   0   ,   0   ,   0   ,   0   ,   0   ,   1   ,   1   ,   1   ),
+              "detective"       : (   0   ,   0   ,   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+              # wolf roles
+              "wolf"            : (   1   ,   1   ,   1   ,   2   ,   2   ,   3   ,   3   ,   3   ,   4   ),
+              "traitor"         : (   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+              "werecrow"        : (   0   ,   0   ,   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+              # templates
+              "cursed villager" : (   0   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   2   ,   2   ),
+              "gunner"          : (   0   ,   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+              })
+
+@game_mode("rapidfire")
+class RapidFireMode(object):
+    def __init__(self):
+        self.MIN_PLAYERS = 6
+        self.MAX_PLAYERS = 25
+        self.SHARPSHOOTER_CHANCE = 1
+        self.DAY_TIME_LIMIT = 480
+        self.DAY_TIME_WARN = 360
+        self.SHORT_DAY_LIMIT = 240
+        self.SHORT_DAY_WARN = 180
+        self.ROLE_INDEX =         (   6   ,   8   ,  10   ,  12   ,  15   ,  18   ,  22   )
+        self.ROLE_GUIDE = reset_roles(self.ROLE_INDEX)
+        self.ROLE_GUIDE.update({# village roles
+            "seer"              : (   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+            "mad scientist"     : (   1   ,   1   ,   1   ,   1   ,   1   ,   2   ,   2   ),
+            "matchmaker"        : (   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   2   ),
+            "hunter"            : (   0   ,   1   ,   1   ,   1   ,   1   ,   2   ,   2   ),
+            "augur"             : (   0   ,   0   ,   0   ,   0   ,   1   ,   1   ,   1   ),
+            "time lord"         : (   0   ,   0   ,   1   ,   1   ,   1   ,   2   ,   2   ),
+            # wolf roles
+            "wolf"              : (   1   ,   1   ,   1   ,   2   ,   2   ,   3   ,   4   ),
+            "wolf cub"          : (   0   ,   1   ,   1   ,   1   ,   2   ,   2   ,   2   ),
+            "traitor"           : (   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+            # neutral roles
+            "vengeful ghost"    : (   0   ,   0   ,   0   ,   1   ,   1   ,   1   ,   2   ),
+            "amnesiac"          : (   0   ,   0   ,   0   ,   0   ,   1   ,   1   ,   1   ),
+            # templates
+            "cursed villager"   : (   1   ,   1   ,   1   ,   1   ,   1   ,   2   ,   2   ),
+            "assassin"          : (   0   ,   1   ,   1   ,   1   ,   2   ,   2   ,   2   ),
+            "gunner"            : (   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+            "sharpshooter"      : (   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+            })
+
+@game_mode("noreveal")
+class NoRevealMode(object):
+    def __init__(self):
+        self.MIN_PLAYERS = 4
+        self.MAX_PLAYERS = 21
+        self.ROLE_REVEAL = False
+        self.ROLE_INDEX =         (   4   ,   6   ,   8   ,  10   ,  12   ,  15   ,  17   ,  19   )
+        self.ROLE_GUIDE = reset_roles(self.ROLE_INDEX)
+        self.ROLE_GUIDE.update({# village roles
+            "seer"              : (   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+            "guardian angel"    : (   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+            "shaman"            : (   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+            "village elder"     : (   0   ,   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+            "detective"         : (   0   ,   0   ,   0   ,   0   ,   1   ,   1   ,   1   ,   1   ),
+            "hunter"            : (   0   ,   0   ,   0   ,   0   ,   0   ,   1   ,   1   ,   1   ),
+            # wolf roles
+            "wolf"              : (   1   ,   1   ,   2   ,   2   ,   2   ,   2   ,   2   ,   3   ),
+            "traitor"           : (   0   ,   0   ,   0   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+            "minion"            : (   0   ,   0   ,   0   ,   0   ,   1   ,   1   ,   1   ,   1   ),
+            "werecrow"          : (   0   ,   0   ,   0   ,   0   ,   0   ,   1   ,   1   ,   1   ),
+            # neutral roles
+            "crazed shaman"     : (   0   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ,   1   ),
+            "clone"             : (   0   ,   0   ,   0   ,   0   ,   0   ,   1   ,   1   ,   1   ),
+            "lycan"             : (   0   ,   0   ,   0   ,   0   ,   0   ,   0   ,   1   ,   1   ),
+            "amnesiac"          : (   0   ,   0   ,   0   ,   0   ,   0   ,   0   ,   1   ,   1   ),
+            # templates
+            "cursed villager"   : (   0   ,   1   ,   1   ,   1   ,   1   ,   1   ,   2   ,   2   ),
+            })

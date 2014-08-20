@@ -11,7 +11,6 @@
 from oyoyo.parse import parse_nick
 import fnmatch
 import botconfig
-import settings.wolfgame as var # needed for admin/owner/op handling
 
 def generate(fdict, permissions=True, **kwargs):
     """Generates a decorator generator.  Always use this"""
@@ -45,22 +44,33 @@ def generate(fdict, permissions=True, **kwargs):
                             for cmdname in s:
                                 if cmdname in botconfig.ALLOW[pattern]:
                                     return f(*largs)  # no questions
+                if admin_only and op_only:
+                    if allow_unopped:
+                        if nick in botconfig.IS_ADMIN or nick in botconfig.IS_OP or nick in botconfig.WAS_OP:
+                            return f(*largs)
+                        else:
+                            largs[0].notice(nick, "You are not allowed to use this command.")
+                    else:
+                        if nick in botconfig.IS_ADMIN or nick in botconfig.IS_OP:
+                            return f(*largs)
+                        else:
+                            largs[0].notice(nick, "You are not allowed to use this command.")
                 if owner_only:
-                    if nick in var.IS_OWNER:
+                    if nick in botconfig.IS_OWNER:
                         return f(*largs)
                     else:
                         largs[0].notice(nick, "You are not the owner.")
                         return
                 if admin_only:
-                    if nick in var.IS_ADMIN:
+                    if nick in botconfig.IS_ADMIN:
                         return f(*largs)
                     else:
                         largs[0].notice(nick, "You are not an admin.")
                         return
-                if op_only: # no idea if it will ever serve any purpose, but let's have it just in case since we can
-                    if nick in var.IS_OP or (nick in var.WAS_OP and allow_unopped):
+                if op_only:
+                    if nick in botconfig.IS_OP or (nick in botconfig.WAS_OP and allow_unopped):
                         return f(*largs)
-                    elif nick in var.WAS_OP and not allow_unopped:
+                    elif nick in botconfig.WAS_OP and not allow_unopped:
                         largs[0].notice(nick, "You are currently not a channel operator.")
                     else:
                         largs[0].notice(nick, "You are not a channel operator.")
