@@ -588,6 +588,8 @@ def stats(cli, nick, chan, rest):
         return
 
     pl = var.list_players()
+    if var.PHASE in ("night", "day"):
+        pl = [x for x in var.ALL_PLAYERS if x in pl]
 
     if nick != chan and (nick in pl or var.PHASE == "join"):
         # only do this rate-limiting stuff if the person is in game
@@ -599,7 +601,6 @@ def stats(cli, nick, chan, rest):
 
         var.LAST_STATS = datetime.now()
 
-    pl.sort(key=lambda x: x.lower())
     if len(pl) > 1:
         msg = '{0}: \u0002{1}\u0002 players: {2}'.format(nick,
             len(pl), ", ".join(pl))
@@ -651,7 +652,7 @@ def stats(cli, nick, chan, rest):
 
     amn_roles = {"amnesiac": 0}
     for amn in var.ORIGINAL_ROLES["amnesiac"]:
-        if amn not in var.list_players():
+        if amn not in pl:
             continue
 
         amnrole = var.get_role(amn)
@@ -4521,7 +4522,7 @@ def transition_night(cli):
                              'dies, the other will as well. You may select yourself as one ' +
                              'of the lovers. You may only select lovers during the first night.'))
             else:
-                cli.notice(mm, "You are a \u0002matchmaker\u0002")
+                cli.notice(mm, "You are a \u0002matchmaker\u0002.")
             pm(cli, mm, "Players: " + ", ".join(pl))
 
         for clone in var.ROLES["clone"]:
@@ -5265,28 +5266,46 @@ def listroles(cli, nick, chan, rest):
 
     old = {}
     txt = ""
+    index = 0
+    pl = len(var.list_players()) + len(var.DEAD)
 
     for r in var.ROLE_GUIDE.keys():
         old[r] = 0
-
-    pl = len(var.list_players()) + len(var.DEAD)
-    if pl > 0:
-        txt += '{0}: There are \u0002{1}\u0002 playing. '.format(nick, pl)
+    rest = re.split(" +", rest.strip(), 1)[0]
+    if rest.isdigit():
+        index = int(rest)
+        for i in range(len(var.ROLE_INDEX)-1, -1, -1):
+            if var.ROLE_INDEX[i] <= index:
+                index = var.ROLE_INDEX[i]
+                break
+    else:
+        if pl > 0:
+            txt += ' {0}: There are \u0002{1}\u0002 playing.'.format(nick, pl)
 
     for i in range(0, len(var.ROLE_INDEX)):
+        if index:
+            if var.ROLE_INDEX[i] < index:
+                continue
+            elif var.ROLE_INDEX[i] > index:
+                break
         if (var.ROLE_INDEX[i] <= pl):
             txt += BOLD
-        txt += "[" + str(var.ROLE_INDEX[i]) + "] "
+        txt += " [" + str(var.ROLE_INDEX[i]) + "] "
         if (var.ROLE_INDEX[i] <= pl):
             txt += BOLD
-        for r, l in var.ROLE_GUIDE.items():
-            if l[i] - old[r] != 0:
-                if l[i] > 1:
-                    txt += "{0}({1}), ".format(r, l[i])
-                else:
-                    txt += "{0}, ".format(r)
-            old[r] = l[i]
-        txt = txt[:-2] + " "
+        roles = []
+        for role, amount in var.ROLE_GUIDE.items():
+            direction = 1 if amount[i] > old[role] else -1
+            for j in range(old[role], amount[i], direction):
+                temp = "{0}{1}".format("-" if direction == -1 else "", role)
+                if direction == 1 and j+1 > 1:
+                    temp += "({0})".format(j+1)
+                elif j > 1:
+                    temp += "({0})".format(j)
+                roles.append(temp)
+            old[role] = amount[i]
+        txt += ", ".join(roles)
+    txt = txt[1:]
 
     if chan == nick:
         pm(cli, nick, txt)
