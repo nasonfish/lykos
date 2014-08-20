@@ -20,7 +20,7 @@ botconfig.AUTO_OP_FAIL = False
 
 def on_privmsg(cli, rawnick, chan, msg, notice = False):
     currmod = ld.MODULES[ld.CURRENT_MODULE]
-    nick,u,m,h = parse_nick(raw_nick)
+    nick,u,m,h = parse_nick(rawnick)
     
     if botconfig.IGNORE_HIDDEN_COMMANDS and (chan.startswith("@#") or chan.startswith("+#")):
         return
